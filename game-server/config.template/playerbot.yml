@@ -1,0 +1,6 @@
+{
+  gameServerHost: "<hostname>",
+  mainServerProtocol: "http",
+  mainServerHost: "<nonPomeloRpcHost>",
+  mainServerPort: "80", 
+}

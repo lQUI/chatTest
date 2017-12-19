@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then 
+	echo "Usage: $0 [test|development|staging|production] [--daemon]"
+	exit 1
+fi
+
+node_env=$1
+daemon_suffix=$2
+
+if [ ! -z $daemon_suffix ]; then
+  if [ $daemon_suffix != "--daemon" ]; then 
+    echo "Invalid daemon suffix, must be \"--daemon\""
+    exit 1
+  fi
+fi
+
+basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+if [ $node_env == 'production' ]; then
+  NODE_ENV=$node_env node $basedir/gate_pingpong_bot.js >/dev/null 2>&1 &
+elif [ $node_env == 'staging' ]; then
+  NODE_ENV=$node_env node $basedir/gate_pingpong_bot.js >/dev/null 2>&1 &
+elif [ $node_env == 'development' ]; then
+  NODE_ENV=$node_env node $basedir/gate_pingpong_bot.js
+elif [ ! -z $daemon_suffix ]; then
+  NODE_ENV='development' TESTING=true node $basedir/gate_pingpong_bot.js >/dev/null 2>&1 &
+else
+  NODE_ENV='development' TESTING=true node $basedir/gate_pingpong_bot.js
+fi

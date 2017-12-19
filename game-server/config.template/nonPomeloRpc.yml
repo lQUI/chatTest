@@ -1,0 +1,6 @@
+{
+  protocol: 'http',
+  host: '<nonPomeloRpcHost>',
+  port: '8888',
+  symmetricKey: ''
+}

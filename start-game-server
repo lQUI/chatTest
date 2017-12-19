@@ -1,0 +1,35 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then 
+	echo "Usage: $0 [test|development|staging|production] [--daemon]"
+	exit 1
+fi
+
+node_env=$1
+daemon_suffix=$2
+
+if [ ! -z $node_env ]; then
+  if [ $node_env != "test" ] && [ $node_env != "development" ] && [ $node_env != "staging" ] && [ $node_env != "production" ]; then 
+    echo "Invalid node env, must be one of \"[test|development|staging|production]\""
+    exit 1
+  fi
+fi
+
+if [ ! -z $daemon_suffix ]; then
+  if [ $daemon_suffix != "--daemon" ]; then 
+    echo "Invalid daemon suffix, must be \"--daemon\""
+    exit 1
+  fi
+fi
+
+basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+if [ $node_env == 'production' ]; then
+  pomelo start --env production --directory $basedir/game-server --daemon
+elif [ $node_env == 'staging' ]; then
+  pomelo start --env staging --directory $basedir/game-server --daemon
+elif [ $node_env == 'development' ]; then
+  pomelo start --env development --directory $basedir/game-server $daemon_suffix
+else
+  TESTING=true pomelo start --env development --directory $basedir/game-server $daemon_suffix
+fi

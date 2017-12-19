@@ -1,0 +1,9 @@
+#!/bin/bash
+
+basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+pomelo stop
+
+pid=$(ps aux | grep "$basedir/game-server/app\.js" | awk '{print $2}')
+echo "killing process(es) of id $pid"
+kill $pid 

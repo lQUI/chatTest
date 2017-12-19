@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then 
+	echo "Usage: $0 [test|development|staging|production] [--daemon]"
+	exit 1
+fi
+
+node_env=$1
+daemon_suffix=$2
+
+if [ ! -z $node_env ]; then
+  if [ $node_env != "test" ] && [ $node_env != "development" ] && [ $node_env != "staging" ] && [ $node_env != "production" ]; then 
+    echo "Invalid node env, must be one of \"[test|development|staging|production]\""
+    exit 1
+  fi
+fi
+
+if [ ! -z $daemon_suffix ]; then
+  if [ $daemon_suffix != "--daemon" ]; then 
+    echo "Invalid daemon suffix, must be \"--daemon\""
+    exit 1
+  fi
+fi
+
+basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+if [ $node_env == 'production' ]; then
+  NODE_ENV=$node_env node $basedir/web-server/app.js >/dev/null 2>&1 &
+elif [ $node_env == 'staging' ]; then
+  NODE_ENV=$node_env node $basedir/web-server/app.js >/dev/null 2>&1 &
+elif [ $node_env == 'development' ]; then
+  if [ ! -z $daemon_suffix ]; then
+    NODE_ENV=$node_env node $basedir/web-server/app.js >/dev/null 2>&1 &
+  else 
+    NODE_ENV=$node_env node $basedir/web-server/app.js
+  fi
+elif [ $node_env == 'test' ]; then
+  if [ ! -z $daemon_suffix ]; then
+    NODE_ENV='development' TESTING=true node $basedir/web-server/app.js >/dev/null 2>&1 &
+  else
+    NODE_ENV='development' TESTING=true node $basedir/web-server/app.js
+  fi
+else
+  exit 1
+fi

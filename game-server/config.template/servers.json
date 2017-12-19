@@ -1,0 +1,22 @@
+{
+    "development":{
+        "gate":[
+            {"id": "gate-server-1", "host": "<hostname>", "clientPort": 3014, "frontend": true}
+        ],
+        "room":[
+            {"id":"room-server-1", "host":"<hostname>", "port":6050},
+            {"id":"room-server-2", "host":"<hostname>", "port":6051},
+            {"id":"room-server-3", "host":"<hostname>", "port":6052}
+        ]
+    },
+    "production":{
+        "gate":[
+            {"id": "gate-server-1", "host": "<hostname>", "clientPort": 3014, "frontend": true}
+        ],
+        "room":[
+            {"id":"room-server-1", "host":"<hostname>", "port":6050},
+            {"id":"room-server-2", "host":"<hostname>", "port":6051},
+            {"id":"room-server-3", "host":"<hostname>", "port":6052}
+        ]
+    }
+}

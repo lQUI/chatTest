@@ -1,0 +1,11 @@
+{
+    "name": "single-pomelo-backend-server",
+    "version": "0.0.1",
+    "private": false,
+    "dependencies": {
+        "pomelo": "2.2.5"
+    },
+    "devDependencies": {
+        "socket.io-client": "1.7.2"
+    }
+}
