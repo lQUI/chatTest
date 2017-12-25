@@ -49,6 +49,11 @@ app.configure('production|development', function() {
     heartbeatTimeout: heartbeatTimeoutMillis,
     heartbeatInterval: heartbeatIntervalMillis,
   });
+
+  //add CahtService
+  const ChatService = require('./app/services/ChatService');
+  app.set('chatService', new ChatService(app));
+
   // filter configures
   app.filter(pomelo.timeout());
 });
@@ -56,6 +61,6 @@ app.configure('production|development', function() {
 // start app
 app.start();
 
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', function(err) {
   logger.error(util.format('Uncaught exception: %s.', err.stack), err);
 });

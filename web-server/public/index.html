@@ -34,6 +34,26 @@
           log: true
         }, onConnected);
       }
+      function login(){
+        const login = 'gate.entryHandler.add';
+        var onReturned = function(data) {
+          alert(JSON.stringify(data));
+        };
+        pomelo.request(login,{uid:"zhangsan",rid:'roomId'},onReturned);
+      }
+      function send(){
+        const send = 'gate.entryHandler.send';
+        var onReturned = function(data) {
+          alert(JSON.stringify(data));
+        };
+        var msg = document.getElementById('msg').value
+        console.log('ready to send msg is' + msg);
+        pomelo.request(send,msg,onReturned);
+      }
+      pomelo.on('onChat',function(data){
+        console.log('onChat');
+        console.log(data);
+      })
     </script>
  
   </head>
@@ -55,6 +75,9 @@
       </div>
       <div class="g-button">
         <input id="test" type="button" value="Test Game Server" onclick="show()"/>
+        <input id="test" type="button" value="login" onclick="login()"/>
+        <input id="msg" type="input"/>
+        <input id="test" type="button" value="send" onclick="send()"/>
       </div>
     </div>
   </body>
