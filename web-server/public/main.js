@@ -24,7 +24,19 @@ $(function() {
   var lastTypingTime;
   var $currentInput = $userNameInput.focus();
 
-  var socket = null;
+  var pomelo = window.pomelo;
+  var host = "127.0.0.1";
+  var port = "3014";
+  var onConnected = function() {
+    var onReturned = function(data) {};
+    const rr = "gate.entryHandler.entry";
+    pomelo.request(rr, "hello pomelo", onReturned);
+  };
+  pomelo.init({
+    host: host,
+    port: port,
+    log: true
+  }, onConnected);
 
   function addParticipantsMessage(data) {
     var message = '';
@@ -38,97 +50,103 @@ $(function() {
 
   // Sets the client's userName
   function setUsername() {
-
     userName = cleanInput($userNameInput.val().trim());
     roomName = cleanInput($roomNameInput.val().trim());
 
-
     // If the userName is valid
     if (userName && roomName) {
-      $.ajax({
-        url: "v1/join",
-        type: 'get',
-        data: {
-          'userName': userName,
-          'roomName': roomName
-        },
-        contentType: 'application/x-www-form-urlencoded',
-        success: function(result) {
-          console.log(result);
-          if (result.ret == 1000) {
-            socket = io("/chatRoom/" + roomName);
-            $loginPage.fadeOut();
-            $chatPage.show();
-            $loginPage.off('click');
-            $currentInput = $inputMessage.focus();
-            // Socket events
+      $loginPage.fadeOut();
+      $chatPage.show();
+      $loginPage.off('click');
+      $currentInput = $inputMessage.focus();
+      // Socket events
 
-            // Whenever the server emits 'login', log the login message
-            socket.on('login', function(data) {
-              connected = true;
-              // Display the welcome message
-              var message = "Welcome to Socket.IO Chat – ";
-              log(message, {
-                prepend: true
-              });
-              addParticipantsMessage(data);
-            });
-
-            // Whenever the server emits 'new message', update the chat body
-            socket.on('new message', function(data) {
-              addChatMessage(data);
-            });
-
-            // Whenever the server emits 'user joined', log it in the chat body
-            socket.on('user joined', function(data) {
-              log(data.userName + ' joined');
-              addParticipantsMessage(data);
-            });
-
-            // Whenever the server emits 'user left', log it in the chat body
-            socket.on('user left', function(data) {
-              log(data.roomName + ' left');
-              socket.emits('user left', userName, roomName);
-              addParticipantsMessage(data);
-              removeChatTyping(data);
-            });
-
-            // Whenever the server emits 'typing', show the typing message
-            socket.on('typing', function(data) {
-              addChatTyping(data);
-            });
-
-            // Whenever the server emits 'stop typing', kill the typing message
-            socket.on('stop typing', function(data) {
-              removeChatTyping(data);
-            });
-
-            socket.on('disconnect', function() {
-              log('you have been disconnected');
-            });
-
-            socket.on('reconnect', function() {
-              log('you have been reconnected');
-              if (userName) {
-                socket.emit('add user', userName);
-              }
-            });
-
-            socket.on('reconnect_error', function() {
-              log('attempt to reconnect has failed');
-            });
-
-            socket.on('ready', function(data) {
-              addChatMessage(data);
-            })
-            socket.on('start', function(data) {
-              addChatMessage(data);
-            })
-
-            // Tell the server your userName
-            socket.emit('add user', userName, roomName);
-          }
+      // Whenever the server emits 'login', log the login message
+      const login = 'gate.entryHandler.add';
+      var onReturned = function(data) {
+        if (data.retCode == 1000) {
+          var message = "Welcome to Socket.IO Chat – ";
+          log(message, {
+            prepend: true
+          });
+          connected = true;
+          addParticipantsMessage(data);
         }
+        alert(JSON.stringify(data));
+      };
+      //login to Room
+      pomelo.request(login, {
+        userName: userName,
+        roomName: roomName
+      }, onReturned);
+
+      // Whenever the server emits 'new message', update the chat body
+      pomelo.on('onChat', function(data) {
+        console.log('onChat receive data is ', data);
+        addChatMessage(data);
+      });
+
+      // Whenever the server emits 'user joined', log it in the chat body
+      pomelo.on('user joined', function(data) {
+        log(data.userName + ' joined');
+        addParticipantsMessage(data);
+      });
+
+      // Whenever the server emits 'user left', log it in the chat body
+      pomelo.on('user left', function(data) {
+        log(data.roomName + ' left');
+        //socket.emits('user left', userName, roomName);
+        addParticipantsMessage(data);
+        removeChatTyping(data);
+      });
+
+      // Whenever the server emits 'typing', show the typing message
+      pomelo.on('typing', function(data) {
+        addChatTyping(data);
+      });
+
+      // Whenever the server emits 'stop typing', kill the typing message
+      pomelo.on('stop typing', function(data) {
+        removeChatTyping(data);
+      });
+
+      pomelo.on('disconnect', function() {
+        log('you have been disconnected');
+        var leave = 'gate.entryHandler.leave';
+        ;
+        var onLeaveReturned = function() {
+          console.log('leave');
+        }
+        pomelo.request(leave, {
+          roomName: roomName
+        }, onLeaveReturned);
+      });
+
+      pomelo.on('reconnect', function() {
+        log('you have been reconnected');
+        if (userName) {
+          //socket.emit('add user', userName);
+          pomelo.request(login, {
+            userName: userName,
+            roomName: roomName
+          }, onReturned);
+        }
+      });
+
+      pomelo.on('reconnect_error', function() {
+        log('attempt to reconnect has failed');
+      });
+
+      pomelo.on('ready', function(data) {
+        log(data);
+      })
+
+      pomelo.on('start', function(data) {
+        log(data);
+      })
+
+      pomelo.on('end', function(data) {
+        log(data);
       })
     } else {
 
@@ -144,12 +162,14 @@ $(function() {
     // if there is a non-empty message and a socket connection
     if (message && connected) {
       $inputMessage.val('');
-      addChatMessage({
-        userName: userName,
-        message: message
-      });
+      // addChatMessage({
+      //   userName: userName,
+      //   message: message
+      // });
       // tell server to execute 'new message' and send along one parameter
-      socket.emit('new message', message);
+      const send = 'gate.entryHandler.send';
+      var onReturned = function(data) {};
+      pomelo.request(send, message, onReturned);
     }
   }
 
@@ -239,7 +259,7 @@ $(function() {
     if (connected) {
       if (!typing) {
         typing = true;
-        socket.emit('typing');
+      //socket.emit('typing');
       }
       lastTypingTime = (new Date()).getTime();
 
@@ -247,7 +267,7 @@ $(function() {
         var typingTimer = (new Date()).getTime();
         var timeDiff = typingTimer - lastTypingTime;
         if (timeDiff >= TYPING_TIMER_LENGTH && typing) {
-          socket.emit('stop typing');
+          //socket.emit('stop typing');
           typing = false;
         }
       }, TYPING_TIMER_LENGTH);
@@ -280,7 +300,7 @@ $(function() {
     if (event.which === 13) {
       if (userName) {
         sendMessage();
-        socket.emit('stop typing');
+        //socket.emit('stop typing');
         typing = false;
       } else {
         setUsername();
@@ -292,13 +312,9 @@ $(function() {
     updateTyping();
   });
 
-  // Click events
-
-
   // Focus input when clicking on the message input's border
   $inputMessage.click(function() {
     $inputMessage.focus();
   });
-
 
 });

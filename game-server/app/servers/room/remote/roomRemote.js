@@ -8,7 +8,7 @@ const Handler = function(app) {
 
 Handler.prototype.joinSync = function(uid, cb) {
   const msg = {
-    content: "Player " + uid + " has joined." 
+    content: "Player " + uid + " has joined."
   };
   cb(msg);
 };
